@@ -108,6 +108,9 @@ namespace eosio { namespace chain {
       if (version < kv_object::minimum_snapshot_version)
          return;
       if (backing_store == backing_store_type::ROCKSDB) {
+         static auto max_key_size = size_t{0};
+         static auto max_value_size = size_t{0};
+
          auto key_values = std::vector<std::pair<eosio::session::shared_bytes, eosio::session::shared_bytes>>{};
          constexpr std::size_t batch_size = 500;
          key_values.reserve(batch_size);
@@ -131,6 +134,9 @@ namespace eosio { namespace chain {
                                                                   move_to_rocks.kv_value.data.data(),
                                                                   move_to_rocks.kv_value.data.size());
 
+               max_key_size = std::max(max_key_size, full_key.size());
+               max_value_size = std::max(max_value_size, final_kv_value.as_payload().size());
+
                key_values.emplace_back(full_key,
                                        final_kv_value.as_payload());
 
@@ -140,6 +146,9 @@ namespace eosio { namespace chain {
                }
             }
          });
+
+         ilog("Maximum key size: ${max}", ("max", max_key_size));
+         ilog("Maximum value size: ${max}", ("max", max_value_size));
          // write out any remaining key-values
          kv_database->write(key_values);
       }
@@ -575,14 +584,21 @@ namespace eosio { namespace chain {
       bool                more     = !section.empty();
       auto                read_row = [&section, &more, &db](auto& row) { more = section.read_row(row, db); };
 
+      auto max_key_size = size_t{0};
+      auto max_value_size = size_t{0};
+
       while (more) {
          // read the row for the table
          backing_store::table_id_object_view table_obj;
          read_row(table_obj);
-         auto put = [&batch, &table_obj](auto&& value, auto create_fun, auto&&... args) {
+         auto put = [&](auto&& value, auto create_fun, auto&&... args) {
             auto composite_key = create_fun(table_obj.scope, table_obj.table, std::forward<decltype(args)>(args)...);
-            batch.emplace_back(backing_store::db_key_value_format::create_full_key(composite_key, table_obj.code),
-                               std::forward<decltype(value)>(value));
+            auto full_key = backing_store::db_key_value_format::create_full_key(composite_key, table_obj.code);
+
+            max_key_size = std::max(max_key_size, full_key.size());
+            max_value_size = std::max(max_value_size, value.size()); 
+
+            batch.emplace_back(full_key, std::forward<decltype(value)>(value));                              
          };
 
          // handle the primary key index
@@ -620,6 +636,10 @@ namespace eosio { namespace chain {
          b1::chain_kv::bytes (*create_table_key)(name scope, name table) = backing_store::db_key_value_format::create_table_key;
          put(pp.as_payload(), create_table_key);
       }
+
+      ilog("Maximum key size: ${max}", ("max", max_key_size));
+      ilog("Maximum value size: ${max}", ("max", max_value_size));
+
       kv_database.write(batch);
    }
 
