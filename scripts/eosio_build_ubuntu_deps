@@ -23,3 +23,5 @@ libcurl4-gnutls-dev,dpkg -s
 pkg-config,dpkg -s
 patch,dpkg -s
 libpqxx-dev,dpkg -s
+libpq,dpkg -s
+libpqxx,dpkg -s

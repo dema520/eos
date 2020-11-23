@@ -23,3 +23,5 @@ clang,rpm -qa
 patch,rpm -qa
 llvm-devel,rpm -qa
 llvm-static,rpm -qa
+libpq,rpm -qa
+libpqxx,rpm -qa
