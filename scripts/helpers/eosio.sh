@@ -313,8 +313,8 @@ function ensure-libpq-and-libpqxx() {
             #build libpqxx
             curl -L https://github.com/jtv/libpqxx/archive/7.2.1.tar.gz | tar zxvf - && \
                 cd  libpqxx-7.2.1  && \
-                cmake -DSKIP_BUILD_TEST=ON -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/libpq -DCMAKE_BUILD_TYPE=Release -S . -B build && \
-                cmake --build build && cmake --install build && \
+                ${CMAKE} -DSKIP_BUILD_TEST=ON -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/libpq -DCMAKE_BUILD_TYPE=Release -S . -B build && \
+                ${CMAKE} --build build && ${CMAKE} --install build && \
                 cd .. && rm -rf libpqxx-7.2.1
         elif [[ $NAME == "CentOS Linux" ]]; then
             #install libpq
@@ -326,8 +326,8 @@ function ensure-libpq-and-libpqxx() {
             curl -L https://github.com/jtv/libpqxx/archive/7.2.1.tar.gz | tar zxvf - && \
                 cd  libpqxx-7.2.1  && \
                 source /opt/rh/devtoolset-8/enable && \
-                cmake -DSKIP_BUILD_TEST=ON  -DCMAKE_BUILD_TYPE=Release -S . -B build && \
-                cmake --build build && cmake --install build && \
+                ${CMAKE} -DSKIP_BUILD_TEST=ON  -DCMAKE_BUILD_TYPE=Release -S . -B build && \
+                ${CMAKE} --build build && ${CMAKE} --install build && \
                 cd .. && rm -rf libpqxx-7.2.1
         elif [[ $NAME == "Ubuntu" ]]; then
             # install libpq
@@ -337,8 +337,8 @@ function ensure-libpq-and-libpqxx() {
             #build libpqxx
             curl -L https://github.com/jtv/libpqxx/archive/7.2.1.tar.gz | tar zxvf - && \
                 cd  libpqxx-7.2.1  && \
-                cmake -DSKIP_BUILD_TEST=ON -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql -DCMAKE_BUILD_TYPE=Release -S . -B build && \
-                cmake --build build && cmake --install build && \
+                ${CMAKE} -DSKIP_BUILD_TEST=ON -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql -DCMAKE_BUILD_TYPE=Release -S . -B build && \
+                ${CMAKE} --build build && ${CMAKE} --install build && \
                 cd .. && rm -rf libpqxx-7.2.1
         fi
     fi
