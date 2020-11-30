@@ -319,12 +319,16 @@ function ensure-libpq-and-libpqxx() {
             # install libpq
             echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
                 curl -sL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
-                apt-get update && apt-get -y install libpq-dev        
+                apt-get update && apt-get -y install libpq-dev  
+            EXTRA_CMAKE_FLAGS="-DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql"     
         fi
         #build libpqxx
+        if $PIN_COMPILER || $BUILD_CLANG; then
+            EXTRA_CMAKE_FLAGS="-DCMAKE_CXX_COMPILER=$CPP_COMP $EXTRA_CMAKE_FLAGS"
+        fi
         curl -L https://github.com/jtv/libpqxx/archive/7.2.1.tar.gz | tar zxvf - && \
                 cd  libpqxx-7.2.1  && \
-                ${CMAKE} -DSKIP_BUILD_TEST=ON -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql -DCMAKE_BUILD_TYPE=Release -S . -B build && \
+                ${CMAKE} $EXTRA_CMAKE_FLAGS -DSKIP_BUILD_TEST=ON -DCMAKE_BUILD_TYPE=Release -S . -B build && \
                 ${CMAKE} --build build && ${CMAKE} --install build && \
                 cd .. && rm -rf libpqxx-7.2.1
     fi
